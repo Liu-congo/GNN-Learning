@@ -11,7 +11,7 @@ class GraphConvolution(nn.Module):
 
         self.weight = nn.Parameter(torch.Tensor(input_dim,output_dim))
         if self.use_bias:
-            self.use_bias = nn.Parameter(torch.Tensor(output_dim))
+            self.bias = nn.Parameter(torch.Tensor(output_dim))
         else:
             self.register_parameter('bias',None)
 

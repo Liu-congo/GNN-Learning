@@ -2,6 +2,7 @@ from collections import namedtuple
 import itertools
 import os
 import pickle
+import _pickle as cPickle
 import scipy.sparse as sp
 import os.path as osp
 import urllib.request
@@ -11,7 +12,7 @@ Data = namedtuple('Data',['x','y','adjacency',
                           'train_mask','val_mask','test_mask'])
 
 class CoraData(object):
-    download_url = "https://github.com/kimiyoung/planetoid/raw/master/data"
+    download_url = "https://github.com/kimiyoung/planetoid/tree/master/data"
     filenames = ["ind.cora.{}".format(name) for name in
                  ['x','tx','allx','y','ty','ally','graph','test.index']]
     
@@ -35,7 +36,7 @@ class CoraData(object):
             print("Using Cached file:{}".format(save_file))
             self._data = pickle.load(open(save_file,"rb"))
         else:
-            self.maybe_download()
+            # self.maybe_download()
             self._data=self.process_data()
             with open(save_file,"wb") as f:
                 pickle.dump(self.data,f)
@@ -52,7 +53,7 @@ class CoraData(object):
         for name in self.filenames:
             if not osp.exists(osp.join(save_path,name)):
                 self.download_data(
-                    "{}/ind.cora.{}".format(self.download_url,name),save_path
+                    "{}/{}".format(self.download_url,name),save_path
                 )
         return 
 
@@ -62,8 +63,8 @@ class CoraData(object):
         if not osp.exists(save_path):
             os.makedirs(save_path)
         data = urllib.request.urlopen(url)
-        filename = osp.splitext(url)
-
+        _, filename = osp.splitext(url)
+        filename = "ind.cora" + filename
         with open(osp.join(save_path, filename),"wb") as f:
             f.write(data.read())
 
@@ -117,7 +118,7 @@ class CoraData(object):
         edge_index = np.asarray(edge_index)
         adjacency = sp.coo_matrix((np.ones(len(edge_index)),
                                    (edge_index[:,0],edge_index[:,1])),
-                                   shape=(num_nodes,num_nodes),dtype="float 32")
+                                   shape=(num_nodes,num_nodes),dtype=np.float32)
         return adjacency
     
     @staticmethod
@@ -128,7 +129,7 @@ class CoraData(object):
             out = np.genfromtxt(path,dtype="int64")
             return out
         else:
-            out = pickle.load(open(path,"rb"), encoding="latin1")
+            out = cPickle.load(open(path,"rb"), encoding="latin1")
             out = out.toarray() if hasattr(out, "toarray") else out
             return out
 
